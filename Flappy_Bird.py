@@ -77,8 +77,7 @@ class Passaro:
             self.imagem = self.IMGS[0]
             self.contagem_imagem = 0
 
-
-        # se o passaro tiver caindo eu não vou bater asa
+         # se o passaro tiver caindo eu não vou bater asa
         if self.angulo <= -80:
             self.imagem = self.IMGS[1]
             self.contagem_imagem = self.TEMPO_ANIMACAO*2
@@ -95,7 +94,7 @@ class Passaro:
 
 class Cano:
     DISTANCIA = 200
-    VELOCIDADE = 5
+    VELOCIDADE = 10
 
     def __init__(self, x):
         self.x = x
@@ -137,7 +136,7 @@ class Cano:
 
 
 class Chao:
-    VELOCIDADE = 5
+    VELOCIDADE = 10
     LARGURA = IMAGEM_CHAO.get_width()
     IMAGEM = IMAGEM_CHAO
 
@@ -154,6 +153,16 @@ class Chao:
             self.x1 = self.x2 + self.LARGURA
         if self.x2 + self.LARGURA < 0:
             self.x2 = self.x1 + self.LARGURA
+
+    def colidir(self, passaro):
+        passaro_mask = passaro.get_mask()
+        chao_mask = pygame.mask.from_surface(self.IMAGEM)
+        chao_ponto = passaro_mask.overlap(chao_mask)
+
+        if chao_ponto:
+            return True
+        else:
+            return False
 
     def desenhar(self, tela):
         tela.blit(self.IMAGEM, (self.x1, self.y))
@@ -172,6 +181,12 @@ def desenhar_tela(tela, passaros, canos, chao, pontos):
     chao.desenhar(tela)
     pygame.display.update()
 
+def reiniciar_jogo():
+    passaros = [Passaro(230, 350)]
+    chao = Chao(730)
+    canos = [Cano(700)]
+    pontos = 0
+    return passaros, chao, canos, pontos
 
 def main():
     passaros = [Passaro(230, 350)]
@@ -206,7 +221,8 @@ def main():
         for cano in canos:
             for i, passaro in enumerate(passaros):
                 if cano.colidir(passaro):
-                    passaros.pop(i)
+                    # Pássaro colidiu, reiniciar o jogo
+                    passaros, chao, canos, pontos = reiniciar_jogo()
                 if not cano.passou and passaro.x > cano.x:
                     cano.passou = True
                     adicionar_cano = True
@@ -222,10 +238,9 @@ def main():
 
         for i, passaro in enumerate(passaros):
             if (passaro.y + passaro.imagem.get_height()) > chao.y or passaro.y < 0:
-                passaros.pop(i)
+                passaros, chao, canos, pontos = reiniciar_jogo()
 
         desenhar_tela(tela, passaros, canos, chao, pontos)
-
 
 if __name__ == '__main__':
     main()
